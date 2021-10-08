@@ -100,6 +100,47 @@ app.layout = dbc.Container(
 
     ], style={'display':'inline-block'}),
     html.P(),
+    #cardgroup to show average change in price,bearish candles and bullish candles
+    dbc.CardGroup
+        ([
+            dbc.Card(
+                dbc.CardBody(
+                    [
+                        html.H5("Average Change", className="card-title",style={'textAlign': 'center'}),
+                        html.P(id='average change'
+                            ,
+                            className="card-text",style={'textAlign': 'center'}
+                        )
+                    ]
+                )
+            ,color="primary", inverse=True
+            ),
+            dbc.Card(
+                dbc.CardBody(
+                    [
+                        html.H5("Bullish Candles", className="card-title",style={'textAlign': 'center'}),
+                        html.P(id='bullish'
+                            ,
+                            className="card-text",style={'textAlign': 'center'}
+                        )
+                    ]
+                )
+            ,color="success", inverse=True
+            ),
+            dbc.Card(
+                dbc.CardBody(
+                    [
+                        html.H5("Bearish Candles", className="card-title",style={'textAlign': 'center'}),
+                        html.P(id='bearish'
+                            ,
+                            className="card-text",style={'textAlign': 'center'}
+                        )
+                    ]
+                )
+            ,color="danger", inverse=True
+            ),
+
+        ]),
     #hidden div for storing dataframe as json to share between tabs 
     html.Div(id='hidden_div', style={'display': 'none'}),
 
@@ -121,7 +162,27 @@ app.layout = dbc.Container(
         ]
         )])
 
+#read from hidden div and calculate average price
+@app.callback(Output('average change', 'children'),
+    [Input('hidden_div', 'children')])
+def average_card(json_df):
+    df=pd.read_json(json_df, orient='split')
+    avg_change=abs(df['change']).mean()
+    return str(avg_change)[:4]+" $"
+#read from hidden div and count bearish candles
+@app.callback(Output('bearish', 'children'),
+    [Input('hidden_div', 'children')])
+def bearish_card(json_df):
+    df=pd.read_json(json_df, orient='split')
+    return (df['change']>0).value_counts()[0]
+#read from hidden div and count bullish candles
+@app.callback(Output('bullish', 'children'),
+    [Input('hidden_div', 'children')])
+def bullish_card(json_df):
+    df=pd.read_json(json_df, orient='split')
+    return (df['change']>0).value_counts()[1]
 
+#get input and call stocktwits API
 @app.callback(Output('hidden_div', 'children'),
     [Input('submit-button', 'n_clicks')],[State('my_ticker_symbol', 'value'),
     State('my_date_picker', 'start_date'),State('my_date_picker', 'end_date')])
