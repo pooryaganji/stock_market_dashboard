@@ -20,6 +20,7 @@ import plotly.offline
 import plotly.express as px
 import pandas as pd
 import requests
+import plotly.graph_objects as go
 
 # Initialise the app
 app = dash.Dash(external_stylesheets=[dbc.themes.BOOTSTRAP])
@@ -150,7 +151,7 @@ app.layout = dbc.Container(
     dcc.Tabs(
         [dcc.Tab([html.P(),
         dcc.Graph(
-            id='my_graph'
+            id='candle_stick'
         )
         ,
 
@@ -181,6 +182,28 @@ def bearish_card(json_df):
 def bullish_card(json_df):
     df=pd.read_json(json_df, orient='split')
     return (df['change']>0).value_counts()[1]
+
+# histogram showing scale of daily price change and count them 
+@app.callback(Output('histogram', 'figure'),
+    [Input('hidden_div', 'children')])
+def hist(json_df):
+    df=pd.read_json(json_df, orient='split')
+    fig=px.histogram(df, x="change")
+    return fig.update_layout(title=dict(text='Count of change in price intervals',x=0.5),xaxis_title="price change ($)")
+
+# candle Stick chart showing price in daily timeframe
+@app.callback(Output('candle_stick', 'figure'),
+    [Input('hidden_div', 'children')])
+def func(json_df):
+    df=pd.read_json(json_df, orient='split')
+    return {'data':[go.Candlestick(x=df['index'],
+                open=df['open'],
+                high=df['high'],
+                low=df['low'],
+                close=df['close'])],
+                'layout': go.Layout(annotations=[],title='Candle stick chart in selected time period',yaxis_title="price ($)",
+                xaxis_rangeslider_visible=False
+        )}
 
 #get input and call stocktwits API
 @app.callback(Output('hidden_div', 'children'),
