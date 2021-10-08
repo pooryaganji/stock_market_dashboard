@@ -13,6 +13,8 @@ import dash_bootstrap_components as dbc
 import dash_html_components as html
 import dash_core_components as dcc
 from datetime import datetime
+from dash.dependencies import Input, Output,State
+import pandas_datareader
 import dash
 import plotly.offline
 import plotly.express as px
@@ -98,7 +100,8 @@ app.layout = dbc.Container(
 
     ], style={'display':'inline-block'}),
     html.P(),
-
+    #hidden div for storing dataframe as json to share between tabs 
+    html.Div(id='hidden_div', style={'display': 'none'}),
 
 
 
@@ -117,6 +120,16 @@ app.layout = dbc.Container(
         dcc.Tab(children=[html.Div(id='table')],label='sentiment of Stocktwits.com', value='tab-2', style=tab_style, selected_style=tab_selected_style)
         ]
         )])
+
+
+@app.callback(Output('hidden_div', 'children'),
+    [Input('submit-button', 'n_clicks')],[State('my_ticker_symbol', 'value'),
+    State('my_date_picker', 'start_date'),State('my_date_picker', 'end_date')])
+def div(n_clicks,my_ticker_symbol,start_date,end_date):
+    data=pandas_datareader.av.time_series.AVTimeSeriesReader(symbols=my_ticker_symbol, function='TIME_SERIES_DAILY', start=start_date, end=end_date, retry_count=3, pause=0.1, session=None, chunksize=25, api_key='EYGEIQ4DIRZYERUZ')
+    df=data.read().reset_index()
+    df['change']=df.close-df.open
+    return df.to_json(date_format='iso', orient='split')
 
 if __name__ == '__main__':
     app.run_server(debug=True)
