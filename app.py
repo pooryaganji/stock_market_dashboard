@@ -51,6 +51,14 @@ card_content = [
     ),
 ]
 
+
+# emty dataframe to store data receiving from stock twits api
+df=pd.DataFrame(columns=['text',
+'time',
+'sentiment',
+'user'])
+
+
 # defining app layout
 app.layout = dbc.Container(        
 
