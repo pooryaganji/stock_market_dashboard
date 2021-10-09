@@ -205,6 +205,56 @@ def func(json_df):
                 xaxis_rangeslider_visible=False
         )}
 
+# recieve twits and sentiments from stocktwits API
+@app.callback(Output('table', 'children'),
+    [Input('submit-button', 'n_clicks')],[State('my_ticker_symbol', 'value'),
+    State('my_date_picker', 'start_date'),State('my_date_picker', 'end_date')])
+def tableview(n_clicks,my_ticker_symbol,start_date,end_date):
+    url = "https://api.stocktwits.com/api/2/streams/symbol/{}.json".format(my_ticker_symbol)
+
+    querystring = {"filter":"all","limit":"30"}
+
+    headers = {
+        'accept': "application/json",
+        'accept-encoding': "gzip, deflate, br",
+        'accept-language': "fa-IR,fa;q=0.9,en-US;q=0.8,en;q=0.7",
+        'authorization': "OAuth 17aad3e23d0878034ec414256347d1155e85bbb1",
+        'Cache-Control': "no-cache",
+        'origin': "https://stocktwits.com",
+        'pragma': "no-cache",
+        'referer': "https://stocktwits.com/",
+        'sec-ch-ua': "\"Chromium\";v=\"88\", \"Google Chrome\";v=\"88\", \";Not A Brand\";v=\"99\"",
+        'sec-ch-ua-mobile': "?0",
+        'sec-fetch-dest': "empty",
+        'sec-fetch-mode': "cors",
+        'sec-fetch-site': "same-site",
+        'user-agent': "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.190 Safari/537.36",
+        'Postman-Token': "f15340d0-344d-deca-24c3-cd6db65ee147"
+        }
+
+    response = requests.request("GET", url, headers=headers, params=querystring)
+    text=[]
+    time=[]
+    sentiment=[]
+    user=[]
+
+    for msg in response.json()['messages']:
+        text.append(msg['body'])
+        time.append(msg['created_at'])
+        try:
+            sentiment.append(msg['entities']['sentiment']['basic'])
+        except:
+            sentiment.append(None)
+        user.append(msg['user']['name'])
+
+        d=dict(
+        text=text,
+        time=time,
+        sentiment=sentiment,
+        user=user)
+    df=pd.DataFrame(d)
+    return dbc.Table.from_dataframe(df=df,striped=True, bordered=True, hover=True)
+
 #get input and call stocktwits API
 @app.callback(Output('hidden_div', 'children'),
     [Input('submit-button', 'n_clicks')],[State('my_ticker_symbol', 'value'),
