@@ -1,8 +1,9 @@
 # stock_market_dashboard
 
-a simple dashboard developed by Dash Ploly for stock market analytics
 
-To clone this repository, run:
+a simple dashboard developed by Dash Ploly for stock market analytics
+<p>to see the dashboard hosted on herku <a href="https://dash-pip.herokuapp.com/">(click)</a> <p>
+<p>To clone this repository, run:<p>
 
 `git clone https://github.com/pooryaganji/stock_market_dashboard.git`
 
